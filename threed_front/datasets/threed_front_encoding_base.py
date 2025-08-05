@@ -289,10 +289,11 @@ class CachedDatasetCollection(DatasetCollection):
         self._dataset = dataset
 
     def __getitem__(self, idx):
-        print("CachedDatasetCollection __getitem__")
-        print(self._dataset.get_room_params(idx))
+        # print("CachedDatasetCollection __getitem__")
+        # print(self._dataset.get_room_params(idx))
+        # print(self._dataset[idx].num_cuboids_list)
         # import sys; sys.exit()
-        return self._dataset.get_room_params(idx)
+        return self._dataset.get_room_params(idx), self._dataset[idx].num_cuboids_list
 
     @property
     def bbox_dims(self):
@@ -326,7 +327,7 @@ class RotationAugmentation(DatasetDecoratorBase):
             return 0.0
 
     def __getitem__(self, idx):
-        sample_params = self._dataset[idx]
+        sample_params, num_cuboids_list = self._dataset[idx]
         
         # Get the rotation matrix for the current scene
         if self._fixed:
@@ -335,7 +336,7 @@ class RotationAugmentation(DatasetDecoratorBase):
             rot_angle = self.rot_angle
         
         if rot_angle == 0:
-            return sample_params
+            return sample_params, num_cuboids_list
         else:
             R = rotation_matrix_around_y(rot_angle).astype(np.float32)
             R_2d = R[:, [0,2]][[0,2], :]    # this is transpose of a 2d rotation matrix
@@ -359,15 +360,11 @@ class RotationAugmentation(DatasetDecoratorBase):
                     img, rot_angle * 180 / np.pi, reshape=False
                 ), (2, 0, 1))
 
-                # TODO: This is a hack to fix the ordering of the channels because it was previously changed. This should be fixed in the dataset class.
-                # img = v  # v.shape is (64, 64)
-                # sample_params[k] = rotate(
-                #     img, rot_angle * 180 / np.pi, reshape=False
-                # )
-        print("RotationAugmentation __getitem__")
-        print(sample_params)
+        # print("RotationAugmentation __getitem__")
+        # print(sample_params)
+        # print(num_cuboids_list)
         # import sys; sys.exit()
-        return sample_params
+        return sample_params, num_cuboids_list
 
 
 class Jitter(DatasetDecoratorBase):
@@ -434,17 +431,18 @@ class Scale_CosinAngle(DatasetDecoratorBase):
 
     def __getitem__(self, idx):
         bounds = self.bounds
-        sample_params = self._dataset[idx]
+        sample_params, num_cuboids_list = self._dataset[idx]
         for k, v in sample_params.items():
             if k == "angles":
                 # [cos, sin]
                 sample_params[k] = np.concatenate([np.cos(v), np.sin(v)], axis=-1)
             elif k in bounds and k not in ["objfeats", "objfeats_32"]:
                 sample_params[k] = Scale.scale(v, bounds[k][0], bounds[k][1])
-        print("Scale_CosinAngle __getitem__")
-        print(sample_params)
+        # print("Scale_CosinAngle __getitem__")
+        # print(sample_params)
+        # print(num_cuboids_list)
         # import sys; sys.exit()
-        return sample_params
+        return sample_params, num_cuboids_list
 
     def post_process(self, s):
         bounds = self.bounds
@@ -477,14 +475,14 @@ class Scale_CosinAngle_ObjfeatsNorm(DatasetDecoratorBase):
 
     def __getitem__(self, idx):
         bounds = self.bounds
-        sample_params = self._dataset[idx]
+        sample_params, num_cuboids_list = self._dataset[idx]
         for k, v in sample_params.items():
             if k == "angles":
                 # [cos, sin]
                 sample_params[k] = np.concatenate([np.cos(v), np.sin(v)], axis=-1)
             elif k in bounds:
                 sample_params[k] = Scale.scale(v, bounds[k][0], bounds[k][1])
-        return sample_params
+        return sample_params, num_cuboids_list
 
     def post_process(self, s):
         bounds = self.bounds
@@ -512,7 +510,7 @@ class Permutation(DatasetDecoratorBase):
         self._permutation_axis = permutation_axis
 
     def __getitem__(self, idx):
-        sample_params = self._dataset[idx]
+        sample_params, num_cuboids_list = self._dataset[idx]
 
         shapes = sample_params["class_labels"].shape
         ordering = np.random.permutation(shapes[self._permutation_axis])
@@ -526,11 +524,14 @@ class Permutation(DatasetDecoratorBase):
             sample_params["edge_index"] = ordering_map[sample_params["edge_index"]]
             sample_params["adj_matrix"] = \
                 sample_params["adj_matrix"][ordering, :][:, ordering]
-        print("Permutation __getitem__")
-        print(sample_params)
+        # TODO DEBUGGING HERE
+        # print("Permutation __getitem__")
+        # print(sample_params)
+        # print(num_cuboids_list)
         # import sys; sys.exit()
         return sample_params
 
+# TODO NEED TO USE THIS CLASS IN THE TRAINING CODE
 class Permutation_Entity_Only(DatasetDecoratorBase):
     """Class to permute object ordering in the scene."""
     def __init__(self, dataset, permutation_keys, permutation_axis=0):
@@ -539,12 +540,30 @@ class Permutation_Entity_Only(DatasetDecoratorBase):
         self._permutation_axis = permutation_axis
         
     def __getitem__(self, idx):
-        sample_params = self._dataset[idx]
-        ordering = np.random.permutation(sample_params["class_labels"].shape[self._permutation_axis])
+        sample_params, num_cuboids_list = self._dataset[idx]
+        # print("Permutation_Entity_Only __getitem__")
+        # print(sample_params)
+        # print(num_cuboids_list)
+
+        obj_indices = [(0, num_cuboids_list[0])]
+        for i in range(1, len(num_cuboids_list)):
+            obj_indices.append((obj_indices[-1][1] + obj_indices[-1][0] + 1, num_cuboids_list[i]))
+        # print(obj_indices)
+        ordering = np.random.permutation(obj_indices)
+        # print(ordering)
+        ordering_map = []
+        for obj_idx, num_cuboids in ordering:
+            ordering_map.extend(np.arange(obj_idx, obj_idx + num_cuboids + 1))
+
+        ordering_map = np.array(ordering_map)
+        # print(ordering_map)
+        # print(ordering_map.shape)
+        # print(sample_params["class_labels"].shape)
         for k in self._permutation_keys:
             if k in sample_params:
-                sample_params[k] = sample_params[k][ordering]
-        return sample_params
+                sample_params[k] = sample_params[k][ordering_map]
+        # import sys; sys.exit()
+        return sample_params, ordering
 
 
 class OrderedDataset(DatasetDecoratorBase):

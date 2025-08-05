@@ -230,7 +230,7 @@ class CachedRoom(object):
     """Dataset class to combine room data after preprocessing."""
     def __init__(self, scene_id, room_layout, floor_plan_vertices, floor_plan_faces,
         floor_plan_centroid, class_labels, translations, sizes, angles, objfeats,
-        objfeats_32, image_path, edge_index=None):
+        objfeats_32, image_path, edge_index=None, num_cuboids_list=None):
         self.scene_id = scene_id
         self.room_layout = room_layout
         self.floor_plan_faces = floor_plan_faces
@@ -244,6 +244,7 @@ class CachedRoom(object):
         self.objfeats_32 = objfeats_32
         self.image_path = image_path
         self.edge_index = edge_index
+        self.num_cuboids_list = num_cuboids_list
 
     @property
     def floor_plan(self):
