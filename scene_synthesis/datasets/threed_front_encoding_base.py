@@ -400,11 +400,11 @@ class Scale(DatasetDecoratorBase):
 
     def __getitem__(self, idx):
         bounds = self.bounds
-        sample_params = self._dataset[idx]
+        sample_params, num_cuboids_list = self._dataset[idx]
         for k, v in sample_params.items():
             if k in bounds and k not in ["objfeats", "objfeats_32"]:
                 sample_params[k] = Scale.scale(v, bounds[k][0], bounds[k][1])
-        return sample_params
+        return sample_params, num_cuboids_list
 
     def post_process(self, s):
         bounds = self.bounds
@@ -434,7 +434,7 @@ class Scale_CosinAngle(DatasetDecoratorBase):
 
     def __getitem__(self, idx):
         bounds = self.bounds
-        sample_params = self._dataset[idx]
+        sample_params, num_cuboids_list = self._dataset[idx]
         for k, v in sample_params.items():
             if k == "angles":
                 # [cos, sin]
@@ -444,7 +444,7 @@ class Scale_CosinAngle(DatasetDecoratorBase):
         # print("Scale_CosinAngle __getitem__")
         # print(sample_params)
         # import sys; sys.exit()
-        return sample_params
+        return sample_params, num_cuboids_list
 
     def post_process(self, s):
         bounds = self.bounds
@@ -477,14 +477,14 @@ class Scale_CosinAngle_ObjfeatsNorm(DatasetDecoratorBase):
 
     def __getitem__(self, idx):
         bounds = self.bounds
-        sample_params = self._dataset[idx]
+        sample_params, num_cuboids_list = self._dataset[idx]
         for k, v in sample_params.items():
             if k == "angles":
                 # [cos, sin]
                 sample_params[k] = np.concatenate([np.cos(v), np.sin(v)], axis=-1)
             elif k in bounds:
                 sample_params[k] = Scale.scale(v, bounds[k][0], bounds[k][1])
-        return sample_params
+            return sample_params, num_cuboids_list
 
     def post_process(self, s):
         bounds = self.bounds
@@ -512,7 +512,7 @@ class Permutation(DatasetDecoratorBase):
         self._permutation_axis = permutation_axis
 
     def __getitem__(self, idx):
-        sample_params = self._dataset[idx]
+        sample_params, num_cuboids_list = self._dataset[idx]
 
         shapes = sample_params["class_labels"].shape
         ordering = np.random.permutation(shapes[self._permutation_axis])
@@ -529,8 +529,7 @@ class Permutation(DatasetDecoratorBase):
         # print("Permutation __getitem__")
         # print(sample_params)
         # import sys; sys.exit()
-        return sample_params
-
+        return sample_params, num_cuboids_list
 
 class OrderedDataset(DatasetDecoratorBase):
     """Dataset class to re-order a list of selected values based on specified ordering.

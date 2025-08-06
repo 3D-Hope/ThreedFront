@@ -284,16 +284,20 @@ class CachedDatasetCollection(DatasetCollection):
     """Dataset class inheritated from DatasetCollection. This class is initizlied with 
     a dataset containing get_room_params class function such that __getitem__ returns 
     the output of this function."""
-    def __init__(self, dataset):
+    def __init__(self, dataset, config):
         super().__init__(dataset)
         self._dataset = dataset
+        self._config = config
 
     def __getitem__(self, idx):
         # print("CachedDatasetCollection __getitem__")
         # print(self._dataset.get_room_params(idx))
         # print(self._dataset[idx].num_cuboids_list)
         # import sys; sys.exit()
-        return self._dataset.get_room_params(idx), self._dataset[idx].num_cuboids_list
+        if "with_cuboids" in self._config["dataset_type"]:
+            return self._dataset.get_room_params(idx), self._dataset[idx].num_cuboids_list
+        else:
+            return self._dataset.get_room_params(idx)
 
     @property
     def bbox_dims(self):
@@ -327,7 +331,12 @@ class RotationAugmentation(DatasetDecoratorBase):
             return 0.0
 
     def __getitem__(self, idx):
-        sample_params, num_cuboids_list = self._dataset[idx]
+        params = self._dataset[idx]
+        if type(params) == tuple:
+            sample_params, num_cuboids_list = params
+        else:
+            sample_params = params
+            num_cuboids_list = None
         
         # Get the rotation matrix for the current scene
         if self._fixed:
@@ -364,19 +373,30 @@ class RotationAugmentation(DatasetDecoratorBase):
         # print(sample_params)
         # print(num_cuboids_list)
         # import sys; sys.exit()
-        return sample_params, num_cuboids_list
+        if num_cuboids_list is not None:
+            return sample_params, num_cuboids_list
+        else:
+            return sample_params
 
 
 class Jitter(DatasetDecoratorBase):
     """Class to jitter translations, sizes, and angles."""
     def __getitem__(self, idx):
-        sample_params = self._dataset[idx]
+        params = self._dataset[idx]
+        if type(params) == tuple:
+            sample_params, num_cuboids_list = params
+        else:
+            sample_params = params
+            num_cuboids_list = None
         for k, v in sample_params.items():
             if k in ["translations", "sizes", "angles"]:
                 sample_params[k] = v + np.random.normal(0, 0.01)
             else:
                 sample_params[k] = v
-        return sample_params
+        if num_cuboids_list is not None:
+            return sample_params, num_cuboids_list
+        else:
+            return sample_params
 
 
 class Scale(DatasetDecoratorBase):
@@ -397,11 +417,19 @@ class Scale(DatasetDecoratorBase):
 
     def __getitem__(self, idx):
         bounds = self.bounds
-        sample_params = self._dataset[idx]
+        params = self._dataset[idx]
+        if type(params) == tuple:
+            sample_params, num_cuboids_list = params
+        else:
+            sample_params = params
+            num_cuboids_list = None
         for k, v in sample_params.items():
             if k in bounds and k not in ["objfeats", "objfeats_32"]:
                 sample_params[k] = Scale.scale(v, bounds[k][0], bounds[k][1])
-        return sample_params
+        if num_cuboids_list is not None:
+            return sample_params, num_cuboids_list
+        else:
+            return sample_params
 
     def post_process(self, s):
         bounds = self.bounds
@@ -431,7 +459,12 @@ class Scale_CosinAngle(DatasetDecoratorBase):
 
     def __getitem__(self, idx):
         bounds = self.bounds
-        sample_params, num_cuboids_list = self._dataset[idx]
+        params = self._dataset[idx]
+        if type(params) == tuple:
+            sample_params, num_cuboids_list = params
+        else:
+            sample_params = params
+            num_cuboids_list = None
         for k, v in sample_params.items():
             if k == "angles":
                 # [cos, sin]
@@ -442,7 +475,10 @@ class Scale_CosinAngle(DatasetDecoratorBase):
         # print(sample_params)
         # print(num_cuboids_list)
         # import sys; sys.exit()
-        return sample_params, num_cuboids_list
+        if num_cuboids_list is not None:
+            return sample_params, num_cuboids_list
+        else:
+            return sample_params
 
     def post_process(self, s):
         bounds = self.bounds
@@ -475,14 +511,22 @@ class Scale_CosinAngle_ObjfeatsNorm(DatasetDecoratorBase):
 
     def __getitem__(self, idx):
         bounds = self.bounds
-        sample_params, num_cuboids_list = self._dataset[idx]
+        params = self._dataset[idx]
+        if type(params) == tuple:
+            sample_params, num_cuboids_list = params
+        else:
+            sample_params = params
+            num_cuboids_list = None
         for k, v in sample_params.items():
             if k == "angles":
                 # [cos, sin]
                 sample_params[k] = np.concatenate([np.cos(v), np.sin(v)], axis=-1)
             elif k in bounds:
                 sample_params[k] = Scale.scale(v, bounds[k][0], bounds[k][1])
-        return sample_params, num_cuboids_list
+        if num_cuboids_list is not None:
+            return sample_params, num_cuboids_list
+        else:
+            return sample_params
 
     def post_process(self, s):
         bounds = self.bounds
@@ -510,7 +554,12 @@ class Permutation(DatasetDecoratorBase):
         self._permutation_axis = permutation_axis
 
     def __getitem__(self, idx):
-        sample_params, num_cuboids_list = self._dataset[idx]
+        params = self._dataset[idx]
+        if type(params) == tuple:
+            sample_params, num_cuboids_list = params
+        else:
+            sample_params = params
+            num_cuboids_list = None
 
         shapes = sample_params["class_labels"].shape
         ordering = np.random.permutation(shapes[self._permutation_axis])
@@ -524,14 +573,15 @@ class Permutation(DatasetDecoratorBase):
             sample_params["edge_index"] = ordering_map[sample_params["edge_index"]]
             sample_params["adj_matrix"] = \
                 sample_params["adj_matrix"][ordering, :][:, ordering]
-        # TODO DEBUGGING HERE
         # print("Permutation __getitem__")
         # print(sample_params)
         # print(num_cuboids_list)
         # import sys; sys.exit()
-        return sample_params
+        if num_cuboids_list is not None:
+            return sample_params, num_cuboids_list
+        else:
+            return sample_params
 
-# TODO NEED TO USE THIS CLASS IN THE TRAINING CODE
 class Permutation_Entity_Only(DatasetDecoratorBase):
     """Class to permute object ordering in the scene."""
     def __init__(self, dataset, permutation_keys, permutation_axis=0):
@@ -540,11 +590,16 @@ class Permutation_Entity_Only(DatasetDecoratorBase):
         self._permutation_axis = permutation_axis
         
     def __getitem__(self, idx):
-        sample_params, num_cuboids_list = self._dataset[idx]
+        params = self._dataset[idx]
+        if type(params) == tuple:
+            sample_params, num_cuboids_list = params
+        else:
+            sample_params = params
+            num_cuboids_list = None
         # print("Permutation_Entity_Only __getitem__")
         # print(sample_params)
         # print(num_cuboids_list)
-
+        
         obj_indices = [(0, num_cuboids_list[0])]
         for i in range(1, len(num_cuboids_list)):
             obj_indices.append((obj_indices[-1][1] + obj_indices[-1][0] + 1, num_cuboids_list[i]))
@@ -563,7 +618,10 @@ class Permutation_Entity_Only(DatasetDecoratorBase):
             if k in sample_params:
                 sample_params[k] = sample_params[k][ordering_map]
         # import sys; sys.exit()
-        return sample_params, ordering
+        if num_cuboids_list is not None:
+            return sample_params, ordering
+        else:
+            return sample_params
 
 
 class OrderedDataset(DatasetDecoratorBase):

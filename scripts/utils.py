@@ -1,8 +1,8 @@
 import os
 import pickle
+from dotenv import load_dotenv
 
 from threed_front.datasets.threed_front import ThreedFront
-
 
 PROJ_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
@@ -14,7 +14,8 @@ PATH_TO_FLOOR_PLAN_TEXTURES = os.path.join(PROJ_DIR, "demo/floor_plan_texture_im
 PATH_TO_PICKLED_3D_FRONT_DATASET = os.path.join(PROJ_DIR, "output/threed_front.pkl")
 PATH_TO_PICKLED_3D_FUTURE_MODEL = os.path.join(PROJ_DIR, "output/threed_future_model_{}.pkl")
 # PATH_TO_PROCESSED_DATA = os.path.join(PROJ_DIR, "output/3d_front_processed/{}")
-PATH_TO_PROCESSED_DATA = "/mnt/sv-share/MiData/{}"
+load_dotenv()
+PATH_TO_PROCESSED_DATA = os.getenv('PATH_TO_PROCESSED_DATA') + "/{}"
 # PATH_TO_CUBOIDS_PREPROCESSED_DATA="/home/ajad/AshokSaugatResearch/MiDiffusion/preprocessed_bedrooms_no_walls_objfeat32_unscaled"
 
 
