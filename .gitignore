@@ -18,3 +18,4 @@ tmp/
 .idea/
 .vscode/
 *_tmps/
+.env
