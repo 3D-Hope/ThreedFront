@@ -599,9 +599,9 @@ class Permutation_Entity_Only(DatasetDecoratorBase):
         else:
             sample_params = params
             num_cuboids_list = None
-        print("Permutation_Entity_Only __getitem__")
-        print(sample_params)
-        print(num_cuboids_list)
+        # print("Permutation_Entity_Only __getitem__")
+        # print(sample_params)
+        # print(num_cuboids_list)
 
         
         obj_indices = [(0, num_cuboids_list[0])]
