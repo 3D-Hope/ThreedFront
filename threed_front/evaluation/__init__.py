@@ -16,15 +16,18 @@ class ThreedFrontResults():
         self._config = config
         ThreedFrontResults.update_file_paths(config["data"])
 
-        # train dataset
+        # train DatasetCollection
+        # TODO Hacked this
         self._train_dataset = train_dataset
-        while not isinstance(self._train_dataset, ThreedFront):
-            self._train_dataset = self._train_dataset._dataset
+        # print(type(self._train_dataset))
+        # while not isinstance(self._train_dataset, ThreedFront):
+        #     self._train_dataset = self._train_dataset._dataset
         
         # test dataset
         self._test_dataset = test_dataset
-        while not isinstance(self._test_dataset, ThreedFront):
-            self._test_dataset = self._test_dataset._dataset
+        # print(type(self._test_dataset))
+        # while not isinstance(self._test_dataset, ThreedFront):
+        #     self._test_dataset = self._test_dataset._dataset
         
         # results - scene_indices stores corresponding room indices in test_dataset
         assert len(scene_indices) == len(predicted_layouts)
@@ -94,6 +97,8 @@ class ThreedFrontResults():
                 "objfeats" in self._predicted_layouts[idx].keys() else "size"
         if rotate is not None:
             self._predicted_layouts[idx]["angles"] += rotate
+
+        print("SAUGAT: object_types", self._test_dataset.object_types)
         
         render_projection_from_layout(
             self._test_dataset[scene_idx], self._predicted_layouts[idx], 

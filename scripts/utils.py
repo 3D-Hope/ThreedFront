@@ -1,6 +1,8 @@
 import os
 import pickle
 from dotenv import load_dotenv
+import yaml
+from yaml.loader import Loader
 
 from threed_front.datasets.threed_front import ThreedFront
 
@@ -18,6 +20,18 @@ load_dotenv()
 PATH_TO_PROCESSED_DATA = os.getenv('PATH_TO_PROCESSED_DATA') + "/{}"
 # PATH_TO_CUBOIDS_PREPROCESSED_DATA="/home/ajad/AshokSaugatResearch/MiDiffusion/preprocessed_bedrooms_no_walls_objfeat32_unscaled"
 
+def load_config(config_file):
+    with open(config_file, "r") as f:
+        config = yaml.load(f, Loader=Loader)
+    return config
+
+
+def update_data_file_paths(config_data):
+    config_data["dataset_directory"] = \
+        os.path.join(PATH_TO_PROCESSED_DATA, config_data["dataset_directory"])
+    config_data["annotation_file"] = \
+        os.path.join(PATH_TO_DATASET_FILES, config_data["annotation_file"])
+    return config_data
 
 def load_pickled_threed_front(file_path, filter_fn=lambda s: s):
     """Load pickled treed-front data to a ThreedFront object"""

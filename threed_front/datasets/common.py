@@ -50,6 +50,8 @@ class BaseDataset(Dataset):
         return Counter([len(si.bboxes) for si in self.scenes])
 
     def post_process(self, s):
+        print("post_processing")
+        print(s)
         return s
 
     @staticmethod

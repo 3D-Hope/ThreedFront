@@ -29,6 +29,8 @@ class ThreedFutureDataset(object):
         return [oi for oi in self.objects if oi.label == label]
 
     def get_closest_furniture_to_box(self, query_label, query_size):
+        print("TEST QUERY LABEL: ", query_label)
+        # import sys; sys.exit()
         objects = self._filter_objects_by_label(query_label)
         if len(objects) == 0:
             raise RuntimeError("No {} in this dataset.".format(query_label))

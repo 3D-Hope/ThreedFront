@@ -399,9 +399,11 @@ class Scale(DatasetDecoratorBase):
         return x
 
     def __getitem__(self, idx):
+        print("Scale __getitem__")
         bounds = self.bounds
         sample_params, num_cuboids_list = self._dataset[idx]
         for k, v in sample_params.items():
+            print("Scaling", k)
             if k in bounds and k not in ["objfeats", "objfeats_32"]:
                 sample_params[k] = Scale.scale(v, bounds[k][0], bounds[k][1])
         return sample_params, num_cuboids_list
@@ -433,9 +435,11 @@ class Scale_CosinAngle(DatasetDecoratorBase):
         return Scale.descale(x, minimum, maximum)
 
     def __getitem__(self, idx):
+        print("Scale_CosinAngle __getitem__")
         bounds = self.bounds
         sample_params, num_cuboids_list = self._dataset[idx]
         for k, v in sample_params.items():
+            print("Scaling", k)
             if k == "angles":
                 # [cos, sin]
                 sample_params[k] = np.concatenate([np.cos(v), np.sin(v)], axis=-1)

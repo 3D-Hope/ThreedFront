@@ -289,7 +289,11 @@ class CachedThreedFront(ThreedFront):
                 max(d["class_labels"].shape[0] for d in self._dataset_dict)
     
     def _path_to_room(self, i):
-        return os.path.join(self._base_dir, self._tags[i], "boxes.npz")
+        if os.path.exists(os.path.join(self._base_dir, self._tags[i], "boxes.npz")):
+            path = os.path.join(self._base_dir, self._tags[i], "boxes.npz")
+        else:
+            path = os.path.join(self._base_dir, self._tags[i], "cuboid_scene.npz")
+        return path
     
     def _path_to_render(self, i):
         return os.path.join(self._base_dir, self._tags[i], self._rendered_name)
@@ -463,9 +467,12 @@ class CachedThreedFront(ThreedFront):
         self._class_labels = train_stats["class_labels"]
         self._object_types = train_stats["object_types"]
         self._class_frequencies = train_stats["class_frequencies"]
-        self._class_order = train_stats["class_order"]
         self._count_furniture = train_stats["count_furniture"]
-    
+        try:
+            self._class_order = train_stats["class_order"]
+        except:
+            self._class_order = dict(zip(self._count_furniture.keys(), range(len(self._count_furniture))))
+
     @property
     def contain_edges(self):
         return self._contain_edges
