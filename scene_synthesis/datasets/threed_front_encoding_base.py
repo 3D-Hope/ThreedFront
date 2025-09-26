@@ -439,7 +439,7 @@ class Scale_CosinAngle(DatasetDecoratorBase):
         bounds = self.bounds
         sample_params, num_cuboids_list = self._dataset[idx]
         for k, v in sample_params.items():
-            print("Scaling", k)
+            # print("Scaling", k)
             if k == "angles":
                 # [cos, sin]
                 sample_params[k] = np.concatenate([np.cos(v), np.sin(v)], axis=-1)
@@ -498,6 +498,7 @@ class Scale_CosinAngle_ObjfeatsNorm(DatasetDecoratorBase):
                 # theta = arctan2(sin, cos)
                 sample_params[k] = np.arctan2(v[:, :, 1:2], v[:, :, 0:1])
             elif k in bounds:
+                print(f"Descaling {k}, bounds {bounds[k]}")
                 sample_params[k] = Scale.descale(v, bounds[k][0], bounds[k][1])
             else:
                 sample_params[k] = v

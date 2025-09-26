@@ -25,6 +25,7 @@ class CSVSplitsBuilder(object):
         return self._splits["val"]
 
     def _parse_train_test_splits_file(self):
+        # print(f"self._train_test_splits_file: {self._train_test_splits_file}")
         with open(self._train_test_splits_file, "r") as f:
             data = [row for row in csv.reader(f)]
         return np.array(data)
@@ -37,10 +38,17 @@ class CSVSplitsBuilder(object):
         return self._splits
 
     def get_splits(self, keep_splits=["train", "val"]):
-        if not isinstance(keep_splits , list):
+        if isinstance(keep_splits, str):
             keep_splits = [keep_splits]
-        # Return only the split
+        else:
+            try:
+                # Handles OmegaConf ListConfig and other iterables
+                keep_splits = list(keep_splits)
+            except TypeError:
+                keep_splits = [keep_splits]
         s = []
         for ks in keep_splits:
+            # print(f"ks: {ks}")
+            # print(f"self._parse_split_file()[ks]: {self._parse_split_file()[ks]}")
             s.extend(self._parse_split_file()[ks])
         return s

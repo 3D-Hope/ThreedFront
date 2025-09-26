@@ -24,16 +24,22 @@ python scripts/preprocess_floorplan_cuboid_scene.py /mnt/sv-share/MiData/preproc
 python scripts/render_threedfront_scene.py MasterBedroom-2888 --without_screen --with_walls --with_door_and_windows
 
 <!-- Metrics -->
-
+source ../steerable-scene-generation/.venv/bin/activate
 <!-- FID -->
-python scripts/compute_fid_scores.py /home/ajad/AshokSaugatResearch/MiDiffusion/output/predicted_results/baseline_ckpt_50000/results.pkl --output_directory ./fid_tmps --no_texture
+python scripts/compute_fid_scores.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-09-25/11-37-55/sampled_scenes_results.pkl --output_directory ./fid_tmps --no_texture --dataset_directory /mnt/sv-share/MiDiffusion/gravee/bedroom/ --no_floor
+
+python scripts/compute_fid_scores.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/MiDiffusion/output/predicted_results/mi_cuboid_run_sept201/results.pkl --output_directory ./fid_tmps --no_texture
 <!-- KID -->
-python scripts/compute_fid_scores.py /home/ajad/AshokSaugatResearch/MiDiffusion/output/predicted_results/baseline_ckpt_50000/results.pkl --compute_kid --output_directory ./fid_tmps --no_texture
+python scripts/compute_fid_scores.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-09-25/11-37-55/sampled_scenes_results.pkl --compute_kid --output_directory ./fid_tmps --no_texture  --dataset_directory /mnt/sv-share/MiDiffusion/gravee/bedroom/ --no_floor
 <!-- Classifier -->
-python scripts/synthetic_vs_real_classifier.py /home/ajad/AshokSaugatResearch/MiDiffusion/output/predicted_results/baseline_ckpt_50000/results.pkl --output_directory ./classifier_tmps --no_texture
+python scripts/synthetic_vs_real_classifier.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-09-25/11-37-55/sampled_scenes_results.pkl --output_directory ./classifier_tmps --no_texture --no_floor  --dataset_directory /mnt/sv-share/MiDiffusion/gravee/bedroom/
 <!-- OOB and MBL -->
-python scripts/bbox_analysis.py /home/ajad/AshokSaugatResearch/MiDiffusion/output/predicted_results/baseline_ckpt_50000/results.pkl
+source ../steerable-scene-generation/.venv/bin/activate
+
+python scripts/bbox_analysis.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-09-26/06-11-54/sampled_scenes_results.pkl
+
+python scripts/bbox_analysis.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/MiDiffusion/output/predicted_results/mi_cuboid_run_sept203/results.pkl
 <!-- KL-Divergence -->
-python scripts/evaluate_kl_divergence_object_category.py /home/ajad/AshokSaugatResearch/MiDiffusion/output/predicted_results/baseline_ckpt_50000/results.pkl --output_directory ./kl_tmps
+python scripts/evaluate_kl_divergence_object_category.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-09-25/11-37-55/sampled_scenes_results.pkl --output_directory ./kl_tmps
 <!-- Obj Metric -->
-python scripts/calculate_num_obj.py /home/ajad/AshokSaugatResearch/MiDiffusion/output/predicted_results/baseline_ckpt_50000/results.pkl
+python scripts/calculate_num_obj.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-09-25/11-37-55/sampled_scenes_results.pkl

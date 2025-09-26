@@ -284,20 +284,20 @@ class CachedDatasetCollection(DatasetCollection):
     """Dataset class inheritated from DatasetCollection. This class is initizlied with 
     a dataset containing get_room_params class function such that __getitem__ returns 
     the output of this function."""
-    def __init__(self, dataset, config):
+    def __init__(self, dataset):
         super().__init__(dataset)
         self._dataset = dataset
-        self._config = config
+        # self._config = config
 
     def __getitem__(self, idx):
         # print("CachedDatasetCollection __getitem__")
         # print(self._dataset.get_room_params(idx))
         # print(self._dataset[idx].num_cuboids_list)
         # import sys; sys.exit()
-        if "with_cuboids" in self._config["dataset_type"]:
-            return self._dataset.get_room_params(idx), self._dataset[idx].num_cuboids_list
-        else:
-            return self._dataset.get_room_params(idx)
+        # if "with_cuboids" in self._config["dataset_type"]:
+        #     return self._dataset.get_room_params(idx), self._dataset[idx].num_cuboids_list
+        # else:
+        return self._dataset.get_room_params(idx)
 
     @property
     def bbox_dims(self):
@@ -522,6 +522,7 @@ class Scale_CosinAngle_ObjfeatsNorm(DatasetDecoratorBase):
                 # [cos, sin]
                 sample_params[k] = np.concatenate([np.cos(v), np.sin(v)], axis=-1)
             elif k in bounds:
+                print(f"Descaling {k}, bounds {bounds[k]}")
                 sample_params[k] = Scale.scale(v, bounds[k][0], bounds[k][1])
         if num_cuboids_list is not None:
             return sample_params, num_cuboids_list

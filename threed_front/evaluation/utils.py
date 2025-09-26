@@ -173,6 +173,7 @@ def evaluate_kl_divergence(raw_dataset:CachedThreedFront, scene_indices, layout_
     syn_freq = syn_total / sum([d["class_labels"].shape[0] for d in syn_class_labels])
     
     # Check freqeuncies sum to 1 (i.e. no label outside the 0:n_object_types range)
+    print(f"[Ashok] sum of gt_freq: {gt_freq.sum()}, sum of syn_freq: {syn_freq.sum()}")
     assert 0.9999 <= gt_freq.sum() <= 1.0001
     assert 0.9999 <= syn_freq.sum() <= 1.0001
 

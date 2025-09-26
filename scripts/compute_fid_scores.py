@@ -54,6 +54,12 @@ def main(argv):
         help="Select ground-truth images without texture"
     )
 
+    parser.add_argument(
+        "--no_floor",
+        action="store_true",
+        help="Select ground-truth images without floor"
+    )
+
     args = parser.parse_args(argv)
 
     if torch.cuda.is_available():
@@ -64,15 +70,19 @@ def main(argv):
 
     # Score function
     score_func = fid.compute_kid if args.compute_kid else fid.compute_fid
-
     # Load saved results
     with open(args.result_file, "rb") as f:
         threed_front_results = pickle.load(f)
+    if args.no_floor:
+        no_floor = True
+    else:
+        no_floor = not threed_front_results.floor_condition
+    print(f"[Ashok] floor condition in gt {not no_floor} ")
     assert isinstance(threed_front_results, ThreedFrontResults)
     test_dataset = threed_front_results.test_dataset
     real_render_name = "rendered_scene{}_256{}.png".format(
         "_notexture" if args.no_texture else "", 
-        "_nofloor" if not threed_front_results.floor_condition else ""
+        "_nofloor" if no_floor else ""
     )
     update_render_paths(test_dataset, args.dataset_directory, real_render_name)
     

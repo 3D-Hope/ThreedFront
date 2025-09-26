@@ -81,6 +81,12 @@ def main(argv):
         help="Seed for sampling synthesized projection images"
     )
 
+    parser.add_argument(
+        "--no_floor",
+        action="store_true",
+        help="if set true then use uncondtional gt"
+    )
+
     args = parser.parse_args(argv)
 
     np.random.seed(args.seed)
@@ -94,9 +100,14 @@ def main(argv):
     with open(args.result_file, "rb") as f:
         threed_front_results = pickle.load(f)
     assert isinstance(threed_front_results, ThreedFrontResults)
+    if args.no_floor:
+        no_floor = True
+    else:
+        no_floor = not threed_front_results.floor_condition
+    print(f"[Ashok] floor condition in gt {not no_floor} ")
     real_render_name = "rendered_scene{}_256{}.png".format(
         "_notexture" if args.no_texture else "", 
-        "_nofloor" if not threed_front_results.floor_condition else ""
+        "_nofloor" if no_floor else ""
     )
     print("Real images to compare to: {}".format(real_render_name))
     
@@ -111,7 +122,7 @@ def main(argv):
     test_dataset_real = threed_front_results.test_dataset
     real_render_name = "rendered_scene{}_256{}.png".format(
         "_notexture" if args.no_texture else "", 
-        "_nofloor" if not threed_front_results.floor_condition else ""
+        "_nofloor" if no_floor else ""
     )
     update_render_paths(train_dataset_real, args.dataset_directory, real_render_name)
     update_render_paths(test_dataset_real, args.dataset_directory, real_render_name)
