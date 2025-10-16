@@ -113,6 +113,7 @@ def main(argv):
 
     # Check if output directory exists and if it doesn't create it
     args.output_directory = args.output_directory.format(room_type)
+    overwrite_subdirectory = 2
     if not os.path.exists(args.output_directory):
         os.makedirs(args.output_directory)
         overwrite_subdirectory = 2

@@ -58,6 +58,12 @@ def main(argv):
     inter_pairs_total = []          # synthesized, number of intersected (i.e. positive iou)
     bbox_iou_ref_total = []         # real
     inter_pairs_ref_total = []      # real, number of intersected (i.e. positive iou)
+    
+    # Collision metrics for paper
+    colliding_objects_total = 0     # synthesized, total count of objects involved in collisions
+    scenes_with_collision_total = 0 # synthesized, count of scenes with at least one collision
+    colliding_objects_ref_total = 0 # real, total count of objects involved in collisions
+    scenes_with_collision_ref_total = 0 # real, count of scenes with at least one collision
 
     for scene_idx, scene_layout in threed_front_results:
         gt_scene_layout = raw_dataset.get_room_params(scene_idx)
@@ -91,10 +97,45 @@ def main(argv):
         else:   
             bbox_iou_total.append(bbox_iou.mean()) 
             inter_pairs_total.append((bbox_iou>0).sum())
+            
+            # Count objects involved in collisions (for Col_obj metric)
+            if (bbox_iou > 0).any():
+                num_objects = len(scene_layout["class_labels"])
+                colliding_objects_set = set()
+                
+                # Map 1D IoU array back to (i, j) pairs
+                pair_idx = 0
+                for i in range(num_objects):
+                    for j in range(i+1, num_objects):
+                        if bbox_iou[pair_idx] > 0:
+                            colliding_objects_set.add(i)
+                            colliding_objects_set.add(j)
+                        pair_idx += 1
+                
+                colliding_objects_total += len(colliding_objects_set)
+                scenes_with_collision_total += 1
+        
         # ground-truth layout
         bbox_iou = np.array(compute_bbox_iou(gt_scene_layout))
         bbox_iou_ref_total.append((bbox_iou).mean()) 
         inter_pairs_ref_total.append((bbox_iou>0).sum())
+        
+        # Count objects involved in collisions for ground truth (for Col_obj metric)
+        if len(bbox_iou) > 0 and (bbox_iou > 0).any():
+            num_objects_ref = len(gt_scene_layout["class_labels"])
+            colliding_objects_ref_set = set()
+            
+            # Map 1D IoU array back to (i, j) pairs
+            pair_idx = 0
+            for i in range(num_objects_ref):
+                for j in range(i+1, num_objects_ref):
+                    if bbox_iou[pair_idx] > 0:
+                        colliding_objects_ref_set.add(i)
+                        colliding_objects_ref_set.add(j)
+                    pair_idx += 1
+            
+            colliding_objects_ref_total += len(colliding_objects_ref_set)
+            scenes_with_collision_ref_total += 1
 
     print("(1) Found {} out-of-boundary objects from {} total ({:.4f} %) in {} synthesized scenes."\
           .format(
@@ -116,6 +157,28 @@ def main(argv):
             .format(
                 np.mean(inter_pairs_ref_total), np.mean(bbox_iou_ref_total) * 100
             ))
+    
+    # Calculate and print collision metrics as defined in the paper
+    col_obj_synth = (colliding_objects_total / num_objects_total * 100) if num_objects_total > 0 else 0
+    col_scene_synth = (scenes_with_collision_total / len(threed_front_results) * 100) if len(threed_front_results) > 0 else 0
+    col_obj_ref = (colliding_objects_ref_total / num_objects_ref_total * 100) if num_objects_ref_total > 0 else 0
+    col_scene_ref = (scenes_with_collision_ref_total / len(threed_front_results) * 100) if len(threed_front_results) > 0 else 0
+    
+    print("\n" + "="*80)
+    print("COLLISION METRICS (as per paper definition)")
+    print("="*80)
+    print("(3) Col_obj (percentage of objects that collide with other objects):")
+    print("    Synthesized: {}/{} = {:.4f}%".format(
+        colliding_objects_total, num_objects_total, col_obj_synth))
+    print("    Ground-truth: {}/{} = {:.4f}%".format(
+        colliding_objects_ref_total, num_objects_ref_total, col_obj_ref))
+    
+    print("(4) Col_scene (ratio of scenes that possess object collisions):")
+    print("    Synthesized: {}/{} = {:.4f}%".format(
+        scenes_with_collision_total, len(threed_front_results), col_scene_synth))
+    print("    Ground-truth: {}/{} = {:.4f}%".format(
+        scenes_with_collision_ref_total, len(threed_front_results), col_scene_ref))
+    print("="*80)
 
 
 if __name__ == "__main__":
