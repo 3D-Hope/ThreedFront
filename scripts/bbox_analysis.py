@@ -183,3 +183,7 @@ def main(argv):
 
 if __name__ == "__main__":
     main(None)
+# Col_scene (20.99% vs 72.22%): How many scenes have ANY collision
+# Col_obj (10.67% vs 42.52%): How many objects are involved in collisions
+# Avg intersected pairs (0.28 vs 1.46): How many pairs are colliding per scene on average
+# Avg IoU (0.10% vs 0.26%): How much overlap there is on average
