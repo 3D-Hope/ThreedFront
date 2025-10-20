@@ -16,7 +16,7 @@ from PIL import Image
 from .common import BaseDataset
 from .threed_front_scene import Room
 from .parse_utils import parse_threed_front_scenes
-
+import math
 
 class ThreedFront(BaseDataset):
     """Container for the scenes in the 3D-FRONT dataset.
@@ -309,16 +309,177 @@ class CachedThreedFront(ThreedFront):
             dataset_dict.append(data_dict)
         return dataset_dict
     
+    
+    
+    def calc_box_from_polygon(self, points, S):
+        l = len(points)
+        boxes = {"translation":[],"size":[]}
+        for i in range(l):
+            # i = 6
+            # if i==6:
+            #     continue
+            x = points[i]
+            j = (i+1)%l
+            k = (i+2)%l
+            vij = np.array(points[j]-points[i])
+            vjk = np.array(points[k]-points[j])
+            # x->y, x->z
+            vxz = np.array([-vij[1],vij[0]])
+            # z = x + vxz/math.sqrt(vxz[0]*vxz[0]+vxz[1]*vxz[1])*S
+            
+
+            #####calc y
+            C = x
+            D = x + vij/math.sqrt(vij[0]*vij[0]+vij[1]*vij[1])*S  #y
+            line2 = D-C
+            intersection_lst = []
+            for t in range(1,l-1):
+                A = points[(i+t)%l]
+                B = points[(i+t+1)%l]
+                line1 = B-A
+                if Room.is_perpendicular(line1,line2) and np.cross(line2,line1)>0: #chuizhi & left 
+                    intersection = Room.segments_intersect(A,B,C,D) #qiu xianduan jiaodian
+                    if intersection:
+                        intersection_lst.append(np.array([intersection[0],intersection[1]]))
+
+            #find closest intersction
+            y = D.copy()
+            if len(intersection_lst)>0:
+                min_dist = S*S
+                for intersection in intersection_lst:
+                    d = Room.dist2(intersection,x)
+                    if d<min_dist:
+                        y = intersection.copy()
+                        min_dist = d
+            # cross = np.cross(vij,vjk)
+            # if cross > 0:  #-| limit
+            #     y = points[j]
+            # else: # -- or -|
+            #     y = x + vij/math.sqrt(vij[0]*vij[0]+vij[1]*vij[1])*S
+
+            #####calc z
+            C = x
+            Dxz = x + vxz/math.sqrt(vxz[0]*vxz[0]+vxz[1]*vxz[1])*S
+            Dyz = y + vxz/math.sqrt(vxz[0]*vxz[0]+vxz[1]*vxz[1])*S
+
+            line2 = Dxz-C
+            intersection_lst = []
+            dmin2 = S*S
+            for t in range(1,l-1):
+                A = points[(i+t)%l]
+                B = points[(i+t+1)%l]
+                line1 = B-A
+                if Room.is_perpendicular(line1,line2) and np.cross(line2,line1)>0: #chuizhi & left
+                    #xz
+                    intersection = Room.segments_intersect(A,B,x,Dxz) #qiu xianduan jiaodian
+                    if intersection:
+                        dmin2 = min(dmin2,Room.dist2(intersection,x))
+                    #yz
+                    intersection = Room.segments_intersect(A,B,y,Dyz) #qiu xianduan jiaodian
+                    if intersection:
+                        dmin2 = min(dmin2,Room.dist2(intersection,y))
+                        
+
+            #find closest intersction
+            d = np.sqrt(dmin2)
+            z = x + vxz/math.sqrt(vxz[0]*vxz[0]+vxz[1]*vxz[1])*d
+    
+            # cross = np.cross(vij,vjk)
+            # if cross > 0:  #-| limit
+            #     y = points[j]
+            # else: # -- or -|
+            #     y = x + vij/math.sqrt(vij[0]*vij[0]+vij[1]*vij[1])*S
+
+            sizez = S
+            meanz = 0
+            if x[0]==y[0]:
+                sizey = abs(x[1]-y[1])
+                sizex = abs(x[0]-z[0])
+                meany = (x[1]+y[1])/2
+                meanx = (x[0]+z[0])/2
+            else:
+                sizex = abs(x[0]-y[0])
+                sizey = abs(x[1]-z[1])
+                meany = (x[1]+z[1])/2
+                meanx = (x[0]+y[0])/2
+
+            
+            translation = np.array([meanx,meany,meanz])
+            size = np.array([sizex,sizey,sizez])# half size
+            boxes["translation"].append(translation)
+            boxes["size"].append(size)
+
+        boxes["translation"] = np.array(boxes["translation"])
+        boxes["size"] = np.array(boxes["size"])
+        # 
+        gt_boxes = [[boxes["translation"][i][0],boxes["translation"][i][1],boxes["translation"][i][2],boxes["size"][i][0],boxes["size"][i][1],boxes["size"][i][2],0] for i in range(len(boxes["translation"]))]
+        gt_boxes = np.array(gt_boxes)
+        # print(gt_boxes)
+        # vis = draw_box_label(gt_boxes, (0, 0, 1))
+
+        return  boxes
+        
+        
+    
+    def room_outer_box_from_scene(self, box, centroid):
+        max_len = 50
+        try:
+            L = box["translation"].shape[0]
+            # print(L)
+            
+            # sequence length
+            assert(max_len>=L)
+            translations = np.zeros((max_len, 3), dtype=np.float32)
+            centroid = centroid.copy()
+            centroid[2] = centroid[1] #xzy->xyz
+            centroid[1] = centroid[2]
+            center = np.repeat(centroid[None,:],L,axis=0)
+            translations[:L] = box["translation"] - center
+            sizes = np.zeros((max_len, 3), dtype=np.float32)
+            sizes[:L] = box["size"]
+            angles = np.zeros((max_len, 1), dtype=np.float32)
+            bbox_outer = np.concatenate([translations,sizes,angles],axis=-1)
+
+            # gt_boxes = [[translations[i][0],translations[i][1],translations[i][2],sizes[i][0],sizes[i][1],sizes[i][2],0] for i in range(L)]
+            # gt_boxes = np.array(gt_boxes)
+            # from utils.open3d_vis_utils import draw_box_label
+            # vis = draw_box_label(gt_boxes, (0, 0, 1))
+
+            # gt_boxes = [[translations[i][0],translations[i][1],translations[i][2],sizes[i][0],sizes[i][1],sizes[i][2],0] for i in range(max_len)]
+            # gt_boxes = np.array(gt_boxes)
+            # from utils.open3d_vis_utils import draw_box_label
+            # vis = draw_box_label(gt_boxes, (0, 0, 1))
+            # print("TranslationEncoder",a2-a1,a3-a2,a4-a3)
+            # return {"translations":translations,
+            #         "sizes":sizes,
+            #         "angles":angles}
+            return bbox_outer
+        
+        except:
+            translations = np.zeros((max_len, 3), dtype=np.float32)
+            sizes = np.zeros((max_len, 3), dtype=np.float32)
+            angles = np.zeros((max_len, 1), dtype=np.float32)
+            bbox_outer = np.concatenate([translations,sizes,angles],axis=-1)
+            return bbox_outer
+
     def _parse_room_params(self, i, parse_floor_plan=True):
         D = np.load(self._path_to_room(i))
 
+        points = D["floor_plan_ordered_corners"]
+        boxes = self.calc_box_from_polygon( points, S=50) # same as physcene
+        room_outer_box = self.room_outer_box_from_scene(boxes, D["floor_plan_centroid"])
         # object features
         output_dict = {
             "class_labels": D["class_labels"],
             "translations": D["translations"],
             "sizes": D["sizes"],
             "angles": D["angles"],
-
+            "floor_polygon_points": D["floor_plan_ordered_corners"],
+            "room_outer_box": room_outer_box,
+            "floor_plan_centroid": D["floor_plan_centroid"],
+            "floor_plan_vertices": D["floor_plan_vertices"],
+            "floor_plan_faces": D["floor_plan_faces"],
+            
         }
         if "objfeats" in D.keys():
             output_dict[ "objfeats" ] = D["objfeats"]
@@ -326,6 +487,7 @@ class CachedThreedFront(ThreedFront):
             output_dict[ "objfeats_32" ] = D["objfeats_32"]
         if "floor_plan_boundary_points_normals" in D.keys():
             output_dict[ "fpbpn" ] = D["floor_plan_boundary_points_normals"]
+            
         
         # room layout
         if parse_floor_plan:

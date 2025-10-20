@@ -79,7 +79,7 @@ def main(argv):
         no_floor = not threed_front_results.floor_condition
     print(f"[Ashok] floor condition in gt {not no_floor} ")
     assert isinstance(threed_front_results, ThreedFrontResults)
-    test_dataset = threed_front_results.test_dataset
+    test_dataset = threed_front_results.test_dataset #Note: if you want better fid, use train_dataset here
     real_render_name = "rendered_scene{}_256{}.png".format(
         "_notexture" if args.no_texture else "", 
         "_nofloor" if no_floor else ""

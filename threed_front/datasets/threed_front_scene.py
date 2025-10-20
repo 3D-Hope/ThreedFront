@@ -501,6 +501,47 @@ class Room(BaseScene):
     def centroid(self):
         return self.floor_plan_centroid
 
+    @staticmethod
+    def is_perpendicular(line1,line2):
+        #k
+        # slope1 = line1[1]/ line1[0]
+        # slope2 = line2[1] / line2[0]
+
+        if line1[1]*line2[1]==-line1[0]*line2[0]:
+            return True
+        else:
+            return False
+    
+    @staticmethod 
+    def dist2(A,B):
+        return (A[0]-B[0])*(A[0]-B[0])+(A[1]-B[1])*(A[1]-B[1])
+    
+    @staticmethod
+    def segments_intersect(A,B,C,D):
+        #check bbox 
+        if max(A[0],B[0])<min(C[0],D[0]) or max(C[0],D[0])<min(A[0],B[0]) or \
+            max(A[1],B[1])<min(C[1],D[1]) or max(C[1],D[1])<min(A[1],B[1]):
+            return False
+        
+        #calc cross product
+        def cross_product(p1,p2,p3):
+            out = (p2[0]-p1[0])*(p3[1]-p1[1])-(p2[1]-p1[1])*(p3[0]-p1[0])
+            return out
+        
+        #chech whether two segs are crossed
+        if cross_product(A,B,C) * cross_product(A,B,D) <= 0 and \
+            cross_product(C,D,A) * cross_product(C,D,B) <= 0:
+            a = cross_product(C,D,A)
+            b = cross_product(C,D,B)
+            t = a/(a-b+0.0000001)
+            x = A[0] + t*(B[0]-A[0])
+            y = A[1] + t*(B[1]-A[1])
+            # if (Room.dist(A,(x,y))<0.0001) or (Room.dist(B,(x,y))<0.0001):
+            #     return False
+            return (x,y)
+        else:
+            return False
+
     @property
     def count_furniture_in_room(self):
         return Counter(self.furniture_in_room)
