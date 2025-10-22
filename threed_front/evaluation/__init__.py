@@ -98,7 +98,7 @@ class ThreedFrontResults():
         if rotate is not None:
             self._predicted_layouts[idx]["angles"] += rotate
 
-        print("SAUGAT: object_types", self._test_dataset.object_types)
+        # print("SAUGAT: object_types", self._test_dataset.object_types)
         
         render_projection_from_layout(
             self._test_dataset[scene_idx], self._predicted_layouts[idx], 

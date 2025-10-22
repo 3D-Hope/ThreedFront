@@ -187,7 +187,7 @@ def render_projection_from_layout(
         color_palette=None
     ):
 
-    print("SAUGAT: classes", classes)
+    # print("SAUGAT: classes", classes)
     # object renderables
     renderables, _ = get_textured_objects(
         bbox_params, objects_dataset, classes, retrieve_mode=retrieve_mode, 
