@@ -5,26 +5,14 @@
 # Phase 2: Run all evaluations for each pickle file
 
 # Define the base directory
-BASE_DIR="/media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-10-12"
+BASE_DIR="/media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/"
 
 # Array of pickle files to evaluate
 PKL_FILES=(
-    "$BASE_DIR/06-16-58/sampled_scenes_results.pkl"
-    "$BASE_DIR/06-20-41/sampled_scenes_results.pkl"
-    "$BASE_DIR/06-26-09/sampled_scenes_results.pkl"
-    "$BASE_DIR/09-16-03/sampled_scenes_results.pkl"
-    "$BASE_DIR/06-45-38/sampled_scenes_results.pkl"
-    "$BASE_DIR/06-48-32/sampled_scenes_results.pkl"
-    "$BASE_DIR/06-36-36/sampled_scenes_results.pkl"
-    "$BASE_DIR/06-44-57/sampled_scenes_results.pkl"
-    "$BASE_DIR/08-51-42/sampled_scenes_results.pkl"
-    "$BASE_DIR/08-52-43/sampled_scenes_results.pkl"
-    "$BASE_DIR/08-55-00/sampled_scenes_results.pkl"
-    "$BASE_DIR/08-55-38/sampled_scenes_results.pkl"
-    "$BASE_DIR/08-56-59/sampled_scenes_results.pkl"
-    "$BASE_DIR/09-00-17/sampled_scenes_results.pkl"
-    "$BASE_DIR/09-04-13/sampled_scenes_results.pkl"
-    "$BASE_DIR/09-05-55/sampled_scenes_results.pkl"
+    "$BASE_DIR/outputs/2025-10-16/10-37-29/sampled_scenes_results.pkl"  # DiffuScene, jfgw3io6, ddpm, True, 1000
+    "$BASE_DIR/outputs/2025-10-16/10-43-55/sampled_scenes_results.pkl"  # DiffuScene, jfgw3io6, ddim, True, 150
+    "$BASE_DIR/outputs/2025-10-16/10-45-35/sampled_scenes_results.pkl"  # Continuous MI, pfksynuz, ddpm, True, 1000
+    "$BASE_DIR/outputs/2025-10-16/10-48-55/sampled_scenes_results.pkl"  # Continuous MI, pfksynuz, ddim, True, 150
 )
 
 # Get total number of files

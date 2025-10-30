@@ -19,3 +19,4 @@ tmp/
 .vscode/
 *_tmps/
 .env
+*.log

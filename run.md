@@ -4,13 +4,16 @@ python scripts/pickle_threed_front_dataset.py /mnt/sv-share/3DFRONT/data/3D-FRON
 
 python scripts/pickle_threed_future_dataset.py threed_front_bedroom
 
+python scripts/pickle_threed_future_dataset.py threed_front_livingroom
+
+
 python ../ThreedFront/scripts/render_results.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-09-27/10-12-32/sampled_scenes_results.pkl
 python ../ThreedFront/scripts/render_results.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-09-27/10-15-17/sampled_scenes_results.pkl
 <!-- Preprocessing -->
 
-python scripts/preprocess_data.py threed_front_bedroom
+python scripts/preprocess_data.py threed_front_bedroom --add_objfeats
 
-python scripts/preprocess_data.py threed_front_livingroom
+python scripts/preprocess_data.py threed_front_livingroom --add_objfeats
 
 <!-- For no texture and no floor (Select 1 if need to replace) --> 
 python scripts/preprocess_data.py threed_front_bedroom --no_texture --output_directory /mnt/sv-share/MiData
@@ -21,6 +24,10 @@ python scripts/test_preprocess.py threed_front_bedroom --no_texture --output_dir
 python scripts/preprocess_floorplan.py /mnt/sv-share/MiData/bedroom --room_side 3.1
 python scripts/preprocess_floorplan_cuboid_scene.py /mnt/sv-share/MiData/test_data --room_side 3.1
 python scripts/preprocess_floorplan_cuboid_scene.py /mnt/sv-share/MiData/preprocessed_bedrooms_no_walls_objfeat32_unscaled --room_side 3.1
+
+python scripts/preprocess_floorplan.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/MiData/livingroom --room_side 6.1
+
+python scripts/preprocess_floorplan.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/3d_front_data/livingroom --room_side 6.1
 
 
 <!-- Test rendering -->
