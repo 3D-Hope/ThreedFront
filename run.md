@@ -2,8 +2,9 @@
 <!-- Pickling Data -->
 python scripts/pickle_threed_front_dataset.py /mnt/sv-share/3DFRONT/data/3D-FRONT /mnt/sv-share/3DFRONT/data/3D-FUTURE-model /mnt/sv-share/3DFRONT/data/3D-FUTURE-model/model_info.json
 
-python scripts/pickle_threed_future_dataset.py threed_front_bedroom
+python scripts/pickle_threed_front_dataset.py /mnt/sv-share/3DFRONT/data/3D-FRONT /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/3dfuture_data/3D-FUTURE-model /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/3dfuture_data/3D-FUTURE-model/model_info.json
 
+python scripts/pickle_threed_future_dataset.py threed_front_bedroom
 python scripts/pickle_threed_future_dataset.py threed_front_livingroom
 
 
@@ -23,11 +24,12 @@ python scripts/test_preprocess.py threed_front_bedroom --no_texture --output_dir
 <!-- For Floorplan Data -->
 python scripts/preprocess_floorplan.py /mnt/sv-share/MiData/bedroom --room_side 3.1
 python scripts/preprocess_floorplan_cuboid_scene.py /mnt/sv-share/MiData/test_data --room_side 3.1
-python scripts/preprocess_floorplan_cuboid_scene.py /mnt/sv-share/MiData/preprocessed_bedrooms_no_walls_objfeat32_unscaled --room_side 3.1
+python scripts/preprocess_floorplan.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/3d_front_data/bedroom --room_side 3.1
 
 python scripts/preprocess_floorplan.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/MiData/livingroom --room_side 6.1
 
-python scripts/preprocess_floorplan.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/3d_front_data/livingroom --room_side 6.1
+python scripts/preprocess_floorplan.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/3d_front_data/bedroom --room_side 3.1
+python scripts/preprocess_floorplan.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/MiData/livingrooms_objfeats_32_64 --room_side 6.1
 
 
 <!-- Test rendering -->
@@ -68,3 +70,6 @@ python scripts/evaluate_kl_divergence_object_category.py /media/ajad/YourBook/As
 <!-- Obj Metric -->
 python scripts/calculate_num_obj.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-09-27/10-12-32/sampled_scenes_results.pkl
 python scripts/calculate_num_obj.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-09-27/10-15-17/sampled_scenes_results.pkl
+
+
+python scripts/physcene_metrics.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-11-02/04-11-45/sampled_scenes_results.pkl

@@ -210,6 +210,14 @@ class ThreedFutureModel(BaseThreedFutureModel):
         return os.path.join(
             self.path_to_models, self.model_jid, "raw_model.obj"
         )
+        
+    @property
+    def remesh_model_path(self):
+        return os.path.join(
+            self.path_to_models,
+            self.model_jid,
+            "raw_model_remesh.obj"
+        )
 
     # add normalized point cloud of raw_model
     @property

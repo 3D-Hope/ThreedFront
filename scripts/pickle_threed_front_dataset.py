@@ -49,3 +49,8 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+    
+# python scripts/pickle_threed_front_dataset.py /mnt/sv-share/3DFRONT/data/3D-FRONT /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/3dfuture_data/3D-FUTURE-model /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/3dfuture_data/3D-FUTURE-model/model_info.json
+
+
+# python scripts/pickle_threed_future_dataset.py threed_front_bedroom

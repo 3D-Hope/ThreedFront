@@ -35,6 +35,7 @@ class ThreedFront(BaseDataset):
 
         self._sizes = self._centroids = self._angles = None
         self._objfeats = self._objfeats_32 = None
+        print(f"[Ashok] threedfront bounds {bounds}")
         if bounds is not None:
             self._sizes = bounds["sizes"]
             self._centroids = bounds["translations"]
@@ -45,6 +46,7 @@ class ThreedFront(BaseDataset):
             self._objfeats_32 = bounds.get(
                 "objfeats_32", (np.array([1]), np.array([-1]), np.array([1])) # std, min, max
             )
+
         
         self._max_length = None
 
@@ -306,7 +308,8 @@ class CachedThreedFront(ThreedFront):
     
     def _parse_room_params(self, i, parse_floor_plan=True):
         D = np.load(self._path_to_room(i))
-
+        # print(f"[Ashok] cachedthreedfront parse room params keys {D.keys()}")
+        # import sys; sys.exit()
         # object features
         output_dict = {
             "class_labels": D["class_labels"],

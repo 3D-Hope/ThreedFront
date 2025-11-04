@@ -56,6 +56,7 @@ def main(argv):
                 gt_cooccur=gt_cooccurrences, syn_cooccur=syn_cooccurrences)
         print("Saved stats to {}".format(path_to_stats))
 
-
 if __name__ == "__main__":
     main(sys.argv[1:])
+    
+# python scripts/evaluate_kl_divergence_object_category.py /media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/steerable-scene-generation/outputs/2025-10-28/11-54-27/sampled_scenes_results.pkl --output_dir ./kl_tmps

@@ -24,6 +24,7 @@
       "20": "wardrobe"
     },
     "num_classes": 21,
+    "num_classes_with_empty": 22,
     "room_type": "bedroom",
     "max_objects": 12
   },
@@ -56,6 +57,7 @@
       "24": "wine_cabinet"
     },
     "num_classes": 25,
+    "num_classes_with_empty": 26,
     "room_type": "library",
     "max_objects": 21
   },
@@ -87,6 +89,7 @@
       "23": "wine_cabinet"
     },
     "num_classes": 24,
+    "num_classes_with_empty": 25,
     "room_type": "livingroom",
     "max_objects": 21
   }

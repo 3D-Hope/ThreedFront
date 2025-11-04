@@ -241,6 +241,8 @@ class DatasetCollection(DatasetDecoratorBase):
         sample_params = {}
         for di in self._datasets:
             sample_params[di.property_type] = di[idx]
+
+        print(f"[Ashok] get item data collection {sample_params}")
         return sample_params
 
     @staticmethod
@@ -291,7 +293,6 @@ class CachedDatasetCollection(DatasetCollection):
 
     def __getitem__(self, idx):
         # print("CachedDatasetCollection __getitem__")
-        # print(self._dataset.get_room_params(idx))
         # print(self._dataset[idx].num_cuboids_list)
         # import sys; sys.exit()
         # if "with_cuboids" in self._config["dataset_type"]:
@@ -522,7 +523,7 @@ class Scale_CosinAngle_ObjfeatsNorm(DatasetDecoratorBase):
                 # [cos, sin]
                 sample_params[k] = np.concatenate([np.cos(v), np.sin(v)], axis=-1)
             elif k in bounds:
-                print(f"Descaling {k}, bounds {bounds[k]}")
+                # print(f"Descaling {k}, bounds {bounds[k]}")
                 sample_params[k] = Scale.scale(v, bounds[k][0], bounds[k][1])
         if num_cuboids_list is not None:
             return sample_params, num_cuboids_list
@@ -540,9 +541,9 @@ class Scale_CosinAngle_ObjfeatsNorm(DatasetDecoratorBase):
                 sample_params[k] = Scale.descale(v, bounds[k][0], bounds[k][1])
             else:
                 sample_params[k] = v
-        print("Scale_CosinAngle_ObjfeatsNorm post_process")
-        print(sample_params)
-        import sys; sys.exit()
+        # print("Scale_CosinAngle_ObjfeatsNorm post_process")
+        # print(sample_params)
+        # import sys; sys.exit()
         return super().post_process(sample_params)
 
     @property

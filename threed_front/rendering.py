@@ -156,6 +156,7 @@ def get_textured_objects(
     """Return the predicted objects as a list of simple-3dviz TexturedMesh, 
     and a list of trimesh mesh."""
     # For each one of the boxes replace them with an object
+    print(f"[Ashok] retrieve_mode in get_textured_objects is {retrieve_mode}, objfeat in bbox_params keys: {bbox_params.keys()}")
     renderables = []
     trimesh_meshes = []
     bbox_renderables = []
@@ -175,8 +176,14 @@ def get_textured_objects(
         if retrieve_mode == "size":
             furniture = objects_dataset.get_closest_furniture_to_box(
                 query_label, query_size)
-        elif retrieve_mode == "objfeat":
-            query_objfeat = bbox_params["objfeats"][j]
+        elif retrieve_mode == "object":
+            # try:
+            #     query_objfeat = bbox_params["objfeats"][j]
+            #     furniture = objects_dataset.get_closest_furniture_to_objfeats(
+            #         query_label, query_objfeat
+            #     )
+            # except:
+            query_objfeat = bbox_params["objfeats_32"][j]
             furniture = objects_dataset.get_closest_furniture_to_objfeats(
                 query_label, query_objfeat
             )
@@ -195,7 +202,7 @@ def get_textured_objects(
         if retrieve_mode == "size":
             size_scale = furniture.scale
         # by predicted size
-        elif retrieve_mode == "objfeat":
+        elif retrieve_mode == "object":
             raw_bbox_vertices = \
                 np.load(furniture.path_to_bbox_vertices, mmap_mode="r")
             raw_sizes = np.array([  # Note: ThreedFutureModel implements size as half distance between vertices

@@ -289,6 +289,8 @@ class CachedThreedFront(ThreedFront):
                 max(d["class_labels"].shape[0] for d in self._dataset_dict)
     
     def _path_to_room(self, i):
+        # print(os.path.join(self._base_dir, self._tags[i]))
+        # import sys; sys.exit()
         if os.path.exists(os.path.join(self._base_dir, self._tags[i], "boxes.npz")):
             path = os.path.join(self._base_dir, self._tags[i], "boxes.npz")
         else:
@@ -464,23 +466,33 @@ class CachedThreedFront(ThreedFront):
 
     def _parse_room_params(self, i, parse_floor_plan=True):
         D = np.load(self._path_to_room(i))
-
-        points = D["floor_plan_ordered_corners"]
-        boxes = self.calc_box_from_polygon( points, S=50) # same as physcene
-        room_outer_box = self.room_outer_box_from_scene(boxes, D["floor_plan_centroid"])
+        # Floor plan-derived features (robust to missing keys)
+        try:
+            points = D["floor_plan_ordered_corners"]
+            boxes = self.calc_box_from_polygon(points, S=50)  # same as physcene
+            room_outer_box = self.room_outer_box_from_scene(boxes, D["floor_plan_centroid"])
+        except Exception:
+            points = None
+            boxes = None
+            room_outer_box = None
         # object features
         output_dict = {
             "class_labels": D["class_labels"],
             "translations": D["translations"],
             "sizes": D["sizes"],
             "angles": D["angles"],
-            "floor_polygon_points": D["floor_plan_ordered_corners"],
-            "room_outer_box": room_outer_box,
-            "floor_plan_centroid": D["floor_plan_centroid"],
-            "floor_plan_vertices": D["floor_plan_vertices"],
-            "floor_plan_faces": D["floor_plan_faces"],
-            
         }
+        # Conditionally add floor plan fields if present and computed
+        if points is not None:
+            output_dict["floor_polygon_points"] = D["floor_plan_ordered_corners"]
+        if room_outer_box is not None:
+            output_dict["room_outer_box"] = room_outer_box
+        if "floor_plan_centroid" in D.keys():
+            output_dict["floor_plan_centroid"] = D["floor_plan_centroid"]
+        if "floor_plan_vertices" in D.keys():
+            output_dict["floor_plan_vertices"] = D["floor_plan_vertices"]
+        if "floor_plan_faces" in D.keys():
+            output_dict["floor_plan_faces"] = D["floor_plan_faces"]
         if "objfeats" in D.keys():
             output_dict[ "objfeats" ] = D["objfeats"]
         if "objfeats_32" in D.keys():
@@ -533,6 +545,9 @@ class CachedThreedFront(ThreedFront):
     @lru_cache(maxsize=32)
     def __getitem__(self, i):
         D = np.load(self._path_to_room(i))
+        # print(f"[Ashok NEW] D: {list(D.keys())}")
+        # import sys; sys.exit();
+
         if self.contain_edges:
             E = np.load(self._path_to_edge(i))
             try:

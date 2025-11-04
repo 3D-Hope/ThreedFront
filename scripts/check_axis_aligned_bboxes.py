@@ -58,6 +58,7 @@ def main():
             continue
         
         data = np.load(npz_path)
+        print(f"[Ashok] all keys in the npz file: {data.files}")
         angles = data["angles"].flatten()  # shape (N, 1) -> (N,)
         all_angles.extend(angles.tolist())
         

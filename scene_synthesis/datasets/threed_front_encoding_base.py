@@ -289,6 +289,8 @@ class CachedDatasetCollection(DatasetCollection):
         self._dataset = dataset
 
     def __getitem__(self, idx):
+        print(f"[Ashok] cached dataset collection get item ", self._dataset.get_room_params(idx).keys())
+
         # print("CachedDatasetCollection __getitem__")
         # print(self._dataset.get_room_params(idx))
         # import sys; sys.exit()
@@ -498,7 +500,7 @@ class Scale_CosinAngle_ObjfeatsNorm(DatasetDecoratorBase):
                 # theta = arctan2(sin, cos)
                 sample_params[k] = np.arctan2(v[:, :, 1:2], v[:, :, 0:1])
             elif k in bounds:
-                print(f"Descaling {k}, bounds {bounds[k]}")
+                # print(f"Descaling {k}, bounds {bounds[k]}")
                 sample_params[k] = Scale.descale(v, bounds[k][0], bounds[k][1])
             else:
                 sample_params[k] = v

@@ -154,79 +154,89 @@ def compute_tv_viewing_reward(parsed_scene, **kwargs):
 get_reward = compute_tv_viewing_reward
 
 
-if __name__ == "__main__":
-    # Self-test
-    print("Testing TV viewing angle reward function...")
-    print("=" * 80)
-    
+
+# --- Print bed/tv/reward angles for 50 ground truth scenes ---
+import os
+import numpy as np
+import math
+from tqdm import tqdm
+
+def load_scene_ids_from_csv(csv_path, split="test"):
+    scene_ids = []
+    with open(csv_path, 'r') as f:
+        for line in f:
+            parts = line.strip().split(',')
+            if len(parts) == 2:
+                scene_id, scene_split = parts
+                if scene_split == split:
+                    scene_ids.append(scene_id)
+    return scene_ids
+
+def angle_from_orientation(orient):
+    # orient: [cos(theta), sin(theta)]
+    return math.atan2(orient[1], orient[0])
+
+def deg(x):
+    return x * 180 / math.pi
+
+def main_gt_angle_print():
+    # Hardcoded config for ground truth bedroom dataset
+    path_to_dataset_files = "/media/ajad/YourBook/AshokSaugatResearchBackup/AshokSaugatResearch/ThreedFront/dataset_files"
+    path_to_processed_data = "/mnt/sv-share/MiData/"
+    dataset_directory = os.path.join(path_to_processed_data, "bedroom")
+    annotation_file = os.path.join(path_to_dataset_files, "bedroom_threed_front_splits_original.csv")
+
+    print("Loading scene IDs from CSV...")
+    scene_ids = load_scene_ids_from_csv(annotation_file, split="test")
+    print(f"Found {len(scene_ids)} test scenes")
+
+    all_dirs = sorted(os.listdir(dataset_directory))
+    scene_dirs = [d for d in all_dirs if any(d.endswith(scene_id) for scene_id in scene_ids)]
+    print(f"Found {len(scene_dirs)} scene directories")
+
+    tv_idx = 19
+    bed_indices = [8, 15, 11]
+    idx_to_labels = {8: "double_bed", 15: "single_bed", 11: "kids_bed", 19: "tv_stand"}
+
+    import torch
     device = torch.device("cpu")
-    idx_to_labels = {8: "double_bed", 19: "tv_stand", 21: "empty"}
-    
-    # Test 1: Bed facing toward TV (should get high reward)
-    # Bed at [3, 0, 0], TV at [0, 0, 0]
-    # Direction from bed to TV: [-1, 0, 0] in 3D, [-1, 0] in XZ
-    # To face this, bed needs facing_xz = [-1, 0]
-    # facing_xz = [sin(θ), cos(θ)] = [-1, 0] → θ = -90° = -π/2
-    # orientation = [cos(-π/2), sin(-π/2)] = [0, -1]
-    
-    parsed_scene_good = {
-        "positions": torch.tensor([[[3.0, 0.5, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.0]]], 
-                                  dtype=torch.float32),
-        "orientations": torch.tensor([[[0.0, -1.0], [1.0, 0.0], [0.0, 0.0]]], 
-                                     dtype=torch.float32),
-        "object_indices": torch.tensor([[8, 19, 21]]),
-        "is_empty": torch.tensor([[False, False, True]]),
-        "device": device
-    }
-    
-    reward = compute_tv_viewing_reward(parsed_scene_good, idx_to_labels=idx_to_labels)
-    print(f"Test 1 - Bed facing TV:")
-    print(f"  Reward: {reward[0].item():.4f} (expected: ~1.0)")
-    assert reward[0].item() > 0.95, f"Expected >0.95, got {reward[0].item()}"
-    print("  ✅ PASS")
-    print()
-    
-    # Test 2: Bed facing away from TV (should get low reward)
-    # Same positions, but bed facing opposite direction
-    # facing_xz = [1, 0] → orientation = [0, 1]
-    
-    parsed_scene_bad = {
-        "positions": torch.tensor([[[3.0, 0.5, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.0]]], 
-                                  dtype=torch.float32),
-        "orientations": torch.tensor([[[0.0, 1.0], [1.0, 0.0], [0.0, 0.0]]], 
-                                     dtype=torch.float32),
-        "object_indices": torch.tensor([[8, 19, 21]]),
-        "is_empty": torch.tensor([[False, False, True]]),
-        "device": device
-    }
-    
-    reward = compute_tv_viewing_reward(parsed_scene_bad, idx_to_labels=idx_to_labels)
-    print(f"Test 2 - Bed facing away from TV:")
-    print(f"  Reward: {reward[0].item():.4f} (expected: ~0.0)")
-    assert reward[0].item() < 0.05, f"Expected <0.05, got {reward[0].item()}"
-    print("  ✅ PASS")
-    print()
-    
-    # Test 3: No TV or bed (should return 0)
-    parsed_scene_no_tv = {
-        "positions": torch.tensor([[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]]], dtype=torch.float32),
-        "orientations": torch.tensor([[[1.0, 0.0], [1.0, 0.0]]], dtype=torch.float32),
-        "object_indices": torch.tensor([[0, 1]]),  # Not TV or bed
-        "is_empty": torch.tensor([[False, False]]),
-        "device": device
-    }
-    
-    reward = compute_tv_viewing_reward(parsed_scene_no_tv, idx_to_labels=idx_to_labels)
-    print(f"Test 3 - No TV/bed in scene:")
-    print(f"  Reward: {reward[0].item():.4f} (expected: 0.0)")
-    assert reward[0].item() == 0.0, f"Expected 0.0, got {reward[0].item()}"
-    print("  ✅ PASS")
-    print()
-    
-    print("=" * 80)
-    print("✅ ALL TESTS PASSED!")
-    print()
-    print("Tested on 200 real 3D-FRONT bedroom scenes:")
-    print("  - 97.1% achieved high rewards (>0.7)")
-    print("  - Average reward: 0.9838")
-    print("  - Matches dataset statistics: 97% have beds facing TVs")
+
+    count = 0
+    for scene_dir in tqdm(scene_dirs[:50]):
+        npz_path = os.path.join(dataset_directory, scene_dir, "boxes.npz")
+        if not os.path.exists(npz_path):
+            continue
+        data = np.load(npz_path)
+        class_labels = data['class_labels']
+        translations = data['translations']
+        angles = data['angles']
+        object_indices = np.argmax(class_labels, axis=1)
+        tv_mask = (object_indices == tv_idx)
+        bed_mask = np.isin(object_indices, bed_indices)
+        if not (np.any(tv_mask) and np.any(bed_mask)):
+            continue
+        tv_pos = translations[tv_mask][0]
+        tv_angle = angles[tv_mask][0][0] if angles[tv_mask].shape[0] > 0 else float('nan')
+        bed_indices_in_scene = np.where(bed_mask)[0]
+        for bed_idx in bed_indices_in_scene:
+            bed_pos = translations[bed_idx]
+            bed_angle = angles[bed_idx][0]
+            bed_facing_xz = np.array([np.sin(bed_angle), np.cos(bed_angle)])
+            dir_bed_to_tv = tv_pos - bed_pos
+            dir_bed_to_tv_xz = np.array([dir_bed_to_tv[0], dir_bed_to_tv[2]])
+            dir_bed_to_tv_xz = dir_bed_to_tv_xz / (np.linalg.norm(dir_bed_to_tv_xz) + 1e-6)
+            alignment = np.dot(bed_facing_xz, dir_bed_to_tv_xz)
+            reward = (alignment + 1) / 2
+            print(f"Scene: {scene_dir}")
+            print(f"  Bed idx: {bed_idx}")
+            print(f"  Bed angle (deg): {deg(bed_angle):7.2f}")
+            print(f"  TV angle (deg):  {deg(tv_angle):7.2f}")
+            print(f"  Reward angle (deg): {deg(np.arccos(np.clip(alignment, -1, 1))):7.2f}")
+            print(f"  Reward: {reward:.4f}")
+            print("-")
+            count += 1
+            if count >= 50:
+                return
+
+if __name__ == "__main__":
+    main_gt_angle_print()
